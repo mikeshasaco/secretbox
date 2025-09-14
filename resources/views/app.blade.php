@@ -14,10 +14,10 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
 
-        <link rel="preload" as="style" href="{{ asset('build/assets/app-Df7T8Jf-.css') }}" />
-        <link rel="modulepreload" href="{{ asset('build/assets/app-BIwG-w4u.js') }}" />
-        <link rel="stylesheet" href="{{ asset('build/assets/app-Df7T8Jf-.css') }}" />
-        <script type="module" src="{{ asset('build/assets/app-BIwG-w4u.js') }}"></script>
+        <link rel="preload" as="style" href="{{ asset('build/assets/app-BdJb2xTz.css') }}" />
+        <link rel="modulepreload" href="{{ asset('build/assets/app-DIDFFTF0.js') }}" />
+        <link rel="stylesheet" href="{{ asset('build/assets/app-BdJb2xTz.css') }}" />
+        <script type="module" src="{{ asset('build/assets/app-DIDFFTF0.js') }}"></script>
     </head>
     <body class="font-sans antialiased">
         <div id="app"></div>

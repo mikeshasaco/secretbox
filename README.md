@@ -85,4 +85,4 @@ The dashboard includes 7 main tabs:
 
 ## License
 
-MIT License# secretbox
+MIT License

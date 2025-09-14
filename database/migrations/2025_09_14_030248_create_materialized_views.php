@@ -22,7 +22,7 @@ return new class extends Migration
                 AVG(duration_seconds) as avg_time,
                 AVG(scroll_pct) as avg_scroll,
                 AVG(pcqs) as avg_pcqs
-            FROM sessions 
+            FROM tracking_sessions 
             WHERE utm_ad_id IS NOT NULL
             GROUP BY utm_ad_id, DATE(started_at)
         ');

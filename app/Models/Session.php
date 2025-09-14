@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Session extends Model
 {
+    protected $table = 'tracking_sessions';
+
     protected $fillable = [
         'project_id',
         'visitor_id',
