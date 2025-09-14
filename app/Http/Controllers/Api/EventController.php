@@ -4,17 +4,20 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Project;
 use App\Models\Session;
 use App\Models\Visitor;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class EventController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    use AuthorizesRequests;
+    public function index(Request $request, Project $project): JsonResponse
     {
-        $project = $request->get('project');
+        $this->authorize('view', $project);
         
         $query = $project->events()->with(['session', 'visitor']);
 

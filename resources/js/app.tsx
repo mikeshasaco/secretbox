@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth, AuthProvider } from './contexts/AuthContext';
+import { ProjectProvider } from './contexts/ProjectContext';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -43,7 +44,11 @@ function App() {
             />
             <Route 
                 path="/app/*" 
-                element={user ? <DashboardPage /> : <Navigate to="/login" replace />} 
+                element={user ? (
+                    <ProjectProvider>
+                        <DashboardPage />
+                    </ProjectProvider>
+                ) : <Navigate to="/login" replace />} 
             />
         </Routes>
     );

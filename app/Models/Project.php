@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,13 +10,15 @@ use Illuminate\Support\Str;
 
 class Project extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'owner_user_id',
         'name',
+        'description',
+        'website_url',
         'public_key',
-        'secret_prefix',
-        'secret_last4',
-        'secret_hash',
+        'secret_key',
         'is_active',
         'last_used_at',
         'last_rotated_at',
@@ -33,16 +36,10 @@ class Project extends Model
         
         static::creating(function ($project) {
             if (empty($project->public_key)) {
-                $project->public_key = 'pk_' . Str::random(32);
+                $project->public_key = $project->generateKey('pk_');
             }
-            if (empty($project->secret_prefix)) {
-                $project->secret_prefix = Str::random(8);
-            }
-            if (empty($project->secret_last4)) {
-                $project->secret_last4 = Str::random(4);
-            }
-            if (empty($project->secret_hash)) {
-                $project->secret_hash = hash('sha256', Str::random(32));
+            if (empty($project->secret_key)) {
+                $project->secret_key = $project->generateKey('sk_');
             }
         });
     }
@@ -77,13 +74,35 @@ class Project extends Model
         return $this->hasMany(DailyRollup::class);
     }
 
+    /**
+     * Generate a new API key with the given prefix
+     */
+    public function generateKey(string $prefix): string
+    {
+        return $prefix . bin2hex(random_bytes(16));
+    }
+
+    /**
+     * Rotate the API keys for this project
+     */
     public function rotateKeys(): void
     {
         $this->update([
-            'secret_prefix' => Str::random(8),
-            'secret_last4' => Str::random(4),
-            'secret_hash' => hash('sha256', Str::random(32)),
+            'public_key' => $this->generateKey('pk_'),
+            'secret_key' => $this->generateKey('sk_'),
             'last_rotated_at' => now(),
         ]);
+    }
+
+    /**
+     * Get the masked secret key for display
+     */
+    public function getMaskedSecretKeyAttribute(): string
+    {
+        if (!$this->secret_key) {
+            return 'Not set';
+        }
+        
+        return substr($this->secret_key, 0, 8) . '...' . substr($this->secret_key, -4);
     }
 }

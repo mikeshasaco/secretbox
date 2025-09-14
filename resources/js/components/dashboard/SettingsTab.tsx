@@ -1,14 +1,23 @@
 import { useState } from 'react';
 import { Settings, Key, Copy, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { useProject } from '../../contexts/ProjectContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { projectApi } from '../../lib/api/projects';
 
 export default function SettingsTab() {
     const [showSecret, setShowSecret] = useState(false);
-    const [project] = useState({
-        id: 1,
-        name: 'My Project',
-        public_key: 'pk_1234567890abcdef1234567890abcdef',
-        secret_prefix: 'sk_12345678',
-        secret_last4: 'abcd',
+    const { activeProject } = useProject();
+    const queryClient = useQueryClient();
+
+    const rotateKeysMutation = useMutation({
+        mutationFn: () => projectApi.rotateKeys(activeProject!.id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+            console.log('Keys rotated successfully');
+        },
+        onError: (error) => {
+            console.error('Failed to rotate keys:', error);
+        },
     });
 
     const copyToClipboard = (text: string) => {
@@ -17,9 +26,18 @@ export default function SettingsTab() {
     };
 
     const rotateKeys = async () => {
-        // Implement key rotation
-        console.log('Rotating keys...');
+        if (activeProject) {
+            rotateKeysMutation.mutate();
+        }
     };
+
+    if (!activeProject) {
+        return (
+            <div className="text-center py-12">
+                <p className="text-gray-500">No project selected</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -28,7 +46,7 @@ export default function SettingsTab() {
                     <div>
                         <h2 className="text-lg font-medium text-gray-900">Project Settings</h2>
                         <p className="text-sm text-gray-500">
-                            Manage your project configuration and API keys
+                            Manage your project configuration and API keys for {activeProject.name}
                         </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -49,12 +67,12 @@ export default function SettingsTab() {
                         <div className="flex">
                             <input
                                 type="text"
-                                value={project.public_key}
+                                value={activeProject.public_key}
                                 readOnly
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-sm font-mono"
                             />
                             <button
-                                onClick={() => copyToClipboard(project.public_key)}
+                                onClick={() => copyToClipboard(activeProject.public_key)}
                                 className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <Copy className="h-4 w-4" />
@@ -69,7 +87,7 @@ export default function SettingsTab() {
                         <div className="flex">
                             <input
                                 type={showSecret ? 'text' : 'password'}
-                                value={`${project.secret_prefix}${'•'.repeat(24)}${project.secret_last4}`}
+                                value={showSecret ? activeProject.secret_key : activeProject.secret_key.substring(0, 8) + '•'.repeat(24) + activeProject.secret_key.slice(-4)}
                                 readOnly
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-sm font-mono"
                             />
@@ -80,7 +98,7 @@ export default function SettingsTab() {
                                 {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
                             <button
-                                onClick={() => copyToClipboard(`${project.secret_prefix}${'•'.repeat(24)}${project.secret_last4}`)}
+                                onClick={() => copyToClipboard(activeProject.secret_key)}
                                 className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <Copy className="h-4 w-4" />
@@ -94,10 +112,11 @@ export default function SettingsTab() {
                     <div className="pt-4">
                         <button
                             onClick={rotateKeys}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            disabled={rotateKeysMutation.isPending}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
                         >
                             <RotateCcw className="h-4 w-4 mr-2" />
-                            Rotate API Keys
+                            {rotateKeysMutation.isPending ? 'Rotating...' : 'Rotate API Keys'}
                         </button>
                         <p className="mt-2 text-sm text-gray-500">
                             Rotating keys will invalidate all existing API keys. Make sure to update your integrations.
@@ -115,11 +134,12 @@ export default function SettingsTab() {
                         JavaScript Tracking Code
                     </label>
                     <div className="bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm overflow-x-auto">
-                        <pre>{`<script>
+                        <pre>{`<script data-api="${window.location.origin}/api" data-project-id="${activeProject.id}" data-public-key="${activeProject.public_key}">
   (function() {
-    const projectId = '${project.id}';
-    const publicKey = '${project.public_key}';
-    const apiUrl = '${window.location.origin}/api/v1/ingest/event';
+    const script = document.currentScript;
+    const apiUrl = script.dataset.api + '/v1/ingest/event';
+    const projectId = script.dataset.projectId;
+    const publicKey = script.dataset.publicKey;
     
     // Generate session key
     const sessionKey = 'sess_' + Math.random().toString(36).substr(2, 9);
@@ -146,11 +166,12 @@ export default function SettingsTab() {
 </script>`}</pre>
                     </div>
                     <button
-                        onClick={() => copyToClipboard(`<script>
+                        onClick={() => copyToClipboard(`<script data-api="${window.location.origin}/api" data-project-id="${activeProject.id}" data-public-key="${activeProject.public_key}">
   (function() {
-    const projectId = '${project.id}';
-    const publicKey = '${project.public_key}';
-    const apiUrl = '${window.location.origin}/api/v1/ingest/event';
+    const script = document.currentScript;
+    const apiUrl = script.dataset.api + '/v1/ingest/event';
+    const projectId = script.dataset.projectId;
+    const publicKey = script.dataset.publicKey;
     
     // Generate session key
     const sessionKey = 'sess_' + Math.random().toString(36).substr(2, 9);

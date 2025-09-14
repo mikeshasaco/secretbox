@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
+import { useProject } from '../../contexts/ProjectContext';
 import { Users, Bot, Clock, Globe } from 'lucide-react';
 
 interface Visitor {
@@ -17,6 +18,7 @@ interface Visitor {
 }
 
 export default function VisitorsTab() {
+    const { activeProject } = useProject();
     const [filters, setFilters] = useState({
         is_bot: '',
         utm_source: '',
@@ -24,13 +26,15 @@ export default function VisitorsTab() {
     });
 
     const { data, isLoading, error } = useQuery({
-        queryKey: ['visitors', filters],
+        queryKey: ['visitors', activeProject?.id, filters],
         queryFn: async () => {
-            const response = await api.get('/projects/1/visitors', {
+            if (!activeProject) return null;
+            const response = await api.get(`/v1/projects/${activeProject.id}/visitors`, {
                 params: filters,
             });
             return response.data;
         },
+        enabled: !!activeProject,
     });
 
     const formatDate = (dateString: string) => {

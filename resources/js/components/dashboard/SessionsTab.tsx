@@ -1,15 +1,17 @@
 import { Activity, Clock, MousePointer, TrendingUp } from 'lucide-react';
+import { useProject } from '../../contexts/ProjectContext';
 
 export default function SessionsTab() {
+    const { activeProject } = useProject();
     return (
         <div className="space-y-6">
             <div className="bg-white shadow rounded-lg p-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-medium text-gray-900">Sessions</h2>
-                        <p className="text-sm text-gray-500">
-                            Track user sessions and engagement metrics
-                        </p>
+                    <p className="text-sm text-gray-500">
+                        Track user sessions and engagement metrics for {activeProject?.name || 'selected project'}
+                    </p>
                     </div>
                     <div className="flex items-center space-x-2">
                         <Activity className="h-5 w-5 text-gray-400" />

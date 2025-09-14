@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useProject } from '../contexts/ProjectContext';
+import { ProjectSwitcher } from '../components/ProjectSwitcher';
 import { 
     BarChart3, 
     Users, 
@@ -35,6 +37,7 @@ const tabs = [
 
 export default function DashboardPage() {
     const { user, logout } = useAuth();
+    const { activeProject, isLoading: projectLoading } = useProject();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -43,6 +46,28 @@ export default function DashboardPage() {
     };
 
     const currentTab = tabs.find(tab => location.pathname.includes(tab.path)) || tabs[0];
+
+    // Show loading state while projects are loading
+    if (projectLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    // Show project selection prompt if no active project
+    if (!activeProject) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">No Project Selected</h2>
+                    <p className="text-gray-600 mb-6">Please create or select a project to continue.</p>
+                    <ProjectSwitcher />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -73,10 +98,11 @@ export default function DashboardPage() {
                     <Menu className="h-6 w-6" />
                 </button>
                 <div className="flex-1 px-4 flex justify-between">
-                    <div className="flex-1 flex">
-                        <h1 className="text-2xl font-semibold text-gray-900 self-center">
+                    <div className="flex-1 flex items-center space-x-4">
+                        <h1 className="text-2xl font-semibold text-gray-900">
                             {currentTab.name}
                         </h1>
+                        <ProjectSwitcher />
                     </div>
                     <div className="ml-4 flex items-center md:ml-6">
                         <div className="flex items-center space-x-4">

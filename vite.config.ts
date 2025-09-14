@@ -7,17 +7,22 @@ export default defineConfig({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
-            refresh: false,
+            refresh: true,
         }),
-        react(),
+        react({
+            jsxImportSource: 'react',
+        }),
         tailwindcss(),
     ],
-    esbuild: {
-        jsx: 'automatic',
-    },
     server: {
         hmr: {
             host: 'localhost',
+        },
+        cors: true,
+    },
+    resolve: {
+        alias: {
+            '@': '/resources/js',
         },
     },
 });

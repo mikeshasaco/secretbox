@@ -70,3 +70,8 @@ Route::middleware(['api.key', 'throttle:60,1'])->prefix('v1')->group(function ()
 Route::middleware(['api.key', 'throttle:10,1'])->prefix('v1')->group(function () {
     Route::post('spend/upload', [SpendController::class, 'uploadCsv']);
 });
+
+// New ingest middleware for project validation
+Route::middleware(['validate.ingest.project', 'throttle:60,1'])->prefix('v1')->group(function () {
+    Route::post('ingest/event', [EventController::class, 'storeIngest']);
+});
