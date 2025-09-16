@@ -134,68 +134,10 @@ export default function SettingsTab() {
                         JavaScript Tracking Code
                     </label>
                     <div className="bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm overflow-x-auto">
-                        <pre>{`<script data-api="${window.location.origin}/api" data-project-id="${activeProject.id}" data-public-key="${activeProject.public_key}">
-  (function() {
-    const script = document.currentScript;
-    const apiUrl = script.dataset.api + '/v1/ingest/event';
-    const projectId = script.dataset.projectId;
-    const publicKey = script.dataset.publicKey;
-    
-    // Generate session key
-    const sessionKey = 'sess_' + Math.random().toString(36).substr(2, 9);
-    
-    // Track page view
-    fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Api-Key': publicKey,
-        'X-Project-Id': projectId,
-        'X-Visitor-Key': localStorage.getItem('visitor_key') || 'vis_' + Math.random().toString(36).substr(2, 9)
-      },
-      body: JSON.stringify({
-        session_key: sessionKey,
-        event_type: 'page_view',
-        name: 'Page View',
-        url: window.location.href,
-        path: window.location.pathname,
-        scroll_pct: 0
-      })
-    });
-  })();
-</script>`}</pre>
+                        <pre>{`<script data-api="${window.location.origin}/api" data-project-id="${activeProject.id}" data-public-key="${activeProject.public_key}" src="${window.location.origin}/tracking-snippet.js"></script>`}</pre>
                     </div>
                     <button
-                        onClick={() => copyToClipboard(`<script data-api="${window.location.origin}/api" data-project-id="${activeProject.id}" data-public-key="${activeProject.public_key}">
-  (function() {
-    const script = document.currentScript;
-    const apiUrl = script.dataset.api + '/v1/ingest/event';
-    const projectId = script.dataset.projectId;
-    const publicKey = script.dataset.publicKey;
-    
-    // Generate session key
-    const sessionKey = 'sess_' + Math.random().toString(36).substr(2, 9);
-    
-    // Track page view
-    fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Api-Key': publicKey,
-        'X-Project-Id': projectId,
-        'X-Visitor-Key': localStorage.getItem('visitor_key') || 'vis_' + Math.random().toString(36).substr(2, 9)
-      },
-      body: JSON.stringify({
-        session_key: sessionKey,
-        event_type: 'page_view',
-        name: 'Page View',
-        url: window.location.href,
-        path: window.location.pathname,
-        scroll_pct: 0
-      })
-    });
-  })();
-</script>`)}
+                        onClick={() => copyToClipboard(`<script data-api="${window.location.origin}/api" data-project-id="${activeProject.id}" data-public-key="${activeProject.public_key}" src="${window.location.origin}/tracking-snippet.js"></script>`)}
                         className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <Copy className="h-4 w-4 mr-2" />

@@ -18,9 +18,10 @@ class ValidateIngestProject
     {
         $apiKey = $request->header('X-Api-Key');
         $projectId = $request->header('X-Project-Id');
+        $visitorKey = $request->header('X-Visitor-Key');
 
-        if (!$apiKey || !$projectId) {
-            return response()->json(['error' => 'Missing API key or project ID'], 401);
+        if (!$apiKey || !$projectId || !$visitorKey) {
+            return response()->json(['error' => 'Missing required headers: X-Api-Key, X-Project-Id, X-Visitor-Key'], 401);
         }
 
         $project = Project::where('id', $projectId)
@@ -35,8 +36,11 @@ class ValidateIngestProject
         // Update last used timestamp
         $project->update(['last_used_at' => now()]);
 
-        // Add project to request for use in controllers
-        $request->merge(['project' => $project]);
+        // Add project and visitor key to request for use in controllers
+        $request->merge([
+            'project' => $project,
+            'visitor_key' => $visitorKey
+        ]);
 
         return $next($request);
     }

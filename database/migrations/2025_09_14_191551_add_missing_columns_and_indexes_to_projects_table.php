@@ -16,7 +16,17 @@ return new class extends Migration
             $table->text('description')->nullable()->after('name');
             $table->string('website_url')->nullable()->after('description');
             $table->string('secret_key')->after('public_key');
-            
+        });
+
+        // Update existing projects to have secret_key values
+        $projects = \App\Models\Project::whereNull('secret_key')->get();
+        foreach ($projects as $project) {
+            $project->update([
+                'secret_key' => 'sk_' . bin2hex(random_bytes(16))
+            ]);
+        }
+
+        Schema::table('projects', function (Blueprint $table) {
             // Drop old columns that are being replaced
             $table->dropColumn(['secret_prefix', 'secret_last4', 'secret_hash']);
         });
@@ -56,10 +66,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            // Restore old columns
-            $table->string('secret_prefix', 8)->after('public_key');
-            $table->string('secret_last4', 4)->after('secret_prefix');
-            $table->string('secret_hash')->after('secret_last4');
+            // Restore old columns (nullable first)
+            $table->string('secret_prefix', 8)->nullable()->after('public_key');
+            $table->string('secret_last4', 4)->nullable()->after('secret_prefix');
+            $table->string('secret_hash')->nullable()->after('secret_last4');
             
             // Drop new columns
             $table->dropColumn(['description', 'website_url', 'secret_key']);

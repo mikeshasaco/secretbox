@@ -13,6 +13,16 @@ use App\Http\Controllers\Api\AnalyticsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// CSRF token route
+Route::middleware('web')->get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});
+
+// User route for session-based auth
+Route::middleware('web')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
 // Public auth routes
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
@@ -25,8 +35,8 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::get('me', [AuthController::class, 'me']);
 });
 
-// Protected app routes
-Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+// Protected app routes (session-based auth via web guard)
+Route::middleware(['web', 'auth'])->prefix('v1')->group(function () {
     // Projects
     Route::apiResource('projects', ProjectController::class);
     Route::post('projects/{project}/rotate-keys', [ProjectController::class, 'rotateKeys']);
@@ -61,17 +71,12 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('spend/upload', [SpendController::class, 'uploadCsv']);
 });
 
-// API Key protected routes for ingestion
-Route::middleware(['api.key', 'throttle:60,1'])->prefix('v1')->group(function () {
+// Ingest endpoint with project validation
+Route::middleware(['validate.ingest.project', 'throttle:60,1'])->prefix('v1')->group(function () {
     Route::post('ingest/event', [EventController::class, 'storeIngest']);
 });
 
 // API Key protected routes for spend data
 Route::middleware(['api.key', 'throttle:10,1'])->prefix('v1')->group(function () {
     Route::post('spend/upload', [SpendController::class, 'uploadCsv']);
-});
-
-// New ingest middleware for project validation
-Route::middleware(['validate.ingest.project', 'throttle:60,1'])->prefix('v1')->group(function () {
-    Route::post('ingest/event', [EventController::class, 'storeIngest']);
 });

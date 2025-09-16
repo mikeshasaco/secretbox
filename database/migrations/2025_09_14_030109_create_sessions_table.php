@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('utm_campaign_name')->nullable();
             $table->string('utm_adset_id')->nullable();
             $table->string('utm_adset_name')->nullable();
-            $table->string('utm_ad_id')->index();
+            $table->string('utm_ad_id')->nullable()->index();
             $table->string('utm_ad_name')->nullable();
             $table->string('utm_placement')->nullable();
             $table->timestamps();

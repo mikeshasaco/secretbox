@@ -1,3 +1,4 @@
+import React from 'react';
 import '../css/app.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

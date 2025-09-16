@@ -20,6 +20,7 @@ class Event extends Model
         'x',
         'y',
         'meta',
+        'created_at',
     ];
 
     protected $casts = [

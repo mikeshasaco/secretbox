@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micro Tracker Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .button {
+            background: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: #005a87;
+        }
+        .form {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .form input, .form textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .scroll-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .content {
+            height: 2000px; /* Make page scrollable */
+            background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Micro Tracker Test Page</h1>
+    <p>This page demonstrates the Micro Tracker JavaScript snippet functionality.</p>
+    
+    <div class="scroll-indicator">
+        Scroll: <span id="scroll-pct">0%</span>
+    </div>
+
+    <h2>Test Buttons</h2>
+    <button class="button" data-mt="test-button-1" onclick="testClick('Button 1')">Test Button 1</button>
+    <button class="button" data-mt="test-button-2" onclick="testClick('Button 2')">Test Button 2</button>
+    <button class="button" onclick="testCustomEvent()">Custom Event</button>
+
+    <h2>Test Form</h2>
+    <div class="form">
+        <input type="text" placeholder="Name" id="name">
+        <input type="email" placeholder="Email" id="email">
+        <textarea placeholder="Message" id="message"></textarea>
+        <button class="button" onclick="testFormSubmit()">Submit Form</button>
+    </div>
+
+    <h2>Scroll Test</h2>
+    <p>Scroll down to test scroll tracking at 25%, 50%, 75%, and 100% thresholds.</p>
+    <div class="content">
+        <p>This is a tall content area to test scroll tracking...</p>
+        <p>Keep scrolling to see the scroll percentage update...</p>
+        <p>Scroll events will be sent at 25%, 50%, 75%, and 100%...</p>
+        <p>Check the browser's Network tab to see the tracking requests...</p>
+    </div>
+
+    <h2>SPA Navigation Test</h2>
+    <button class="button" onclick="simulateSPANavigation()">Simulate SPA Route Change</button>
+
+    <script>
+        // Update scroll indicator
+        function updateScrollIndicator() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const documentHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollPct = documentHeight > 0 ? Math.round((scrollTop / documentHeight) * 100) : 0;
+            document.getElementById('scroll-pct').textContent = scrollPct + '%';
+        }
+
+        window.addEventListener('scroll', updateScrollIndicator);
+
+        function testClick(buttonName) {
+            console.log('Button clicked:', buttonName);
+            alert('Button clicked: ' + buttonName + '\nCheck the Network tab to see the tracking request.');
+        }
+
+        function testCustomEvent() {
+            if (window.MT && window.MT.track) {
+                window.MT.track('Custom Test Event', {
+                    test_type: 'manual',
+                    timestamp: new Date().toISOString(),
+                    page: 'test-tracking.html'
+                });
+                alert('Custom event sent! Check the Network tab.');
+            } else {
+                alert('MT.track is not available. Make sure the tracking script is loaded.');
+            }
+        }
+
+        function testFormSubmit() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+            
+            if (window.MT && window.MT.track) {
+                window.MT.track('Form Submit', {
+                    form_name: 'Contact Form',
+                    fields_completed: [name, email, message].filter(f => f.length > 0).length,
+                    has_name: name.length > 0,
+                    has_email: email.length > 0,
+                    has_message: message.length > 0
+                });
+                alert('Form submit event sent! Check the Network tab.');
+            } else {
+                alert('MT.track is not available. Make sure the tracking script is loaded.');
+            }
+        }
+
+        function simulateSPANavigation() {
+            // Simulate a route change by updating the URL
+            const newPath = '/test-page-' + Date.now();
+            window.history.pushState({}, '', newPath);
+            
+            // Trigger a custom event to simulate page view
+            if (window.MT && window.MT.track) {
+                window.MT.track('SPA Navigation', {
+                    new_path: newPath,
+                    navigation_type: 'pushState'
+                });
+            }
+            
+            alert('SPA navigation simulated! New path: ' + newPath);
+        }
+
+        // Log when MT is available
+        window.addEventListener('load', function() {
+            if (window.MT) {
+                console.log('Micro Tracker loaded successfully!');
+                console.log('Available methods:', Object.keys(window.MT));
+            } else {
+                console.log('Micro Tracker not loaded. Check the script tag.');
+            }
+        });
+    </script>
+
+    <!-- Tracking snippet for local testing (uses Laravel origin on 8000) -->
+    <script data-api="http://localhost:8000/api" data-project-id="1" data-public-key="I6KsiAB3h1q1" src="http://localhost:8000/tracking-snippet.js"></script>
+</body>
+</html>
